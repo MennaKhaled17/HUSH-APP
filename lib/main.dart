@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'prayer_service.dart';
 
 void main() {
   runApp(const HushApp());
@@ -90,8 +91,55 @@ class _MainShellState extends State<MainShell> {
 }
 
 // ── HOME ──────────────────────────────────────────────
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<PrayerTime> _prayers = [];
+  bool _loading = true;
+  String _nextPrayer = '';
+  String _nextPrayerTime = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPrayers();
+  }
+
+  Future<void> _loadPrayers() async {
+    try {
+      final prayers = await PrayerService.getPrayerTimes();
+      final now = TimeOfDay.now();
+
+      PrayerTime next = prayers.last;
+      for (final p in prayers) {
+        final parts = p.time.split(' ');
+        final timeParts = parts[0].split(':');
+        int hour = int.parse(timeParts[0]);
+        final minute = int.parse(timeParts[1]);
+        if (parts[1] == 'PM' && hour != 12) hour += 12;
+        if (parts[1] == 'AM' && hour == 12) hour = 0;
+        if (hour > now.hour ||
+            (hour == now.hour && minute > now.minute)) {
+          next = p;
+          break;
+        }
+      }
+
+      setState(() {
+        _prayers = prayers;
+        _nextPrayer = next.name;
+        _nextPrayerTime = next.time;
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +157,8 @@ class HomeScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('Good morning,',
-                        style: TextStyle(color: Colors.white38, fontSize: 13)),
+                        style: TextStyle(
+                            color: Colors.white38, fontSize: 13)),
                     const Text('HUSH',
                         style: TextStyle(
                             color: Colors.white,
@@ -125,7 +174,8 @@ class HomeScreen extends StatelessWidget {
                     color: const Color(0xFF4CAF7D).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                        color: const Color(0xFF4CAF7D).withOpacity(0.3)),
+                        color:
+                            const Color(0xFF4CAF7D).withOpacity(0.3)),
                   ),
                   child: const Text('Cairo, EG',
                       style: TextStyle(
@@ -138,52 +188,37 @@ class HomeScreen extends StatelessWidget {
             // Next prayer card
             _GlowCard(
               glowColor: const Color(0xFF4CAF7D),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('NEXT PRAYER',
-                      style: TextStyle(
-                          color: Colors.white38,
-                          fontSize: 11,
-                          letterSpacing: 2.5)),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Asr',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 42,
-                              fontWeight: FontWeight.w300)),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Text('3:45 PM',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w500)),
-                          Text('in 1h 20m',
-                              style: TextStyle(
-                                  color: const Color(0xFF4CAF7D),
-                                  fontSize: 13)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  LinearProgressIndicator(
-                    value: 0.6,
-                    backgroundColor: Colors.white10,
-                    color: const Color(0xFF4CAF7D),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  const SizedBox(height: 6),
-                  const Text('Since Dhuhr 12:30 PM',
-                      style:
-                          TextStyle(color: Colors.white24, fontSize: 11)),
-                ],
-              ),
+              child: _loading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                          color: Color(0xFF4CAF7D)))
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('NEXT PRAYER',
+                            style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: 11,
+                                letterSpacing: 2.5)),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(_nextPrayer,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 42,
+                                    fontWeight: FontWeight.w300)),
+                            Text(_nextPrayerTime,
+                                style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w500)),
+                          ],
+                        ),
+                      ],
+                    ),
             ),
 
             const SizedBox(height: 16),
@@ -229,18 +264,30 @@ class HomeScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Today's prayers row
             const Text('TODAY',
                 style: TextStyle(
                     color: Colors.white38,
                     fontSize: 11,
                     letterSpacing: 2.5)),
             const SizedBox(height: 12),
-            _prayerRow('Fajr', '4:52 AM', true),
-            _prayerRow('Dhuhr', '12:30 PM', true),
-            _prayerRow('Asr', '3:45 PM', false),
-            _prayerRow('Maghrib', '6:18 PM', false),
-            _prayerRow('Isha', '7:48 PM', false),
+
+            if (_loading)
+              const Center(
+                  child: CircularProgressIndicator(
+                      color: Color(0xFF4CAF7D)))
+            else
+              ..._prayers.map((p) {
+                final now = TimeOfDay.now();
+                final parts = p.time.split(' ');
+                final timeParts = parts[0].split(':');
+                int hour = int.parse(timeParts[0]);
+                final minute = int.parse(timeParts[1]);
+                if (parts[1] == 'PM' && hour != 12) hour += 12;
+                if (parts[1] == 'AM' && hour == 12) hour = 0;
+                final done = hour < now.hour ||
+                    (hour == now.hour && minute <= now.minute);
+                return _prayerRow(p.name, p.time, done);
+              }),
           ],
         ),
       ),
@@ -250,7 +297,8 @@ class HomeScreen extends StatelessWidget {
   Widget _prayerRow(String name, String time, bool done) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF141414),
         borderRadius: BorderRadius.circular(12),
@@ -265,7 +313,8 @@ class HomeScreen extends StatelessWidget {
         children: [
           Text(name,
               style: TextStyle(
-                  color: done ? const Color(0xFF4CAF7D) : Colors.white,
+                  color:
+                      done ? const Color(0xFF4CAF7D) : Colors.white,
                   fontSize: 15,
                   fontWeight: FontWeight.w500)),
           Row(
@@ -278,8 +327,9 @@ class HomeScreen extends StatelessWidget {
                 done
                     ? Icons.check_circle_rounded
                     : Icons.radio_button_unchecked_rounded,
-                color:
-                    done ? const Color(0xFF4CAF7D) : Colors.white24,
+                color: done
+                    ? const Color(0xFF4CAF7D)
+                    : Colors.white24,
                 size: 18,
               ),
             ],
