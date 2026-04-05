@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'prayer_service.dart';
-
+import 'package:flutter/material.dart';
+import 'models/prayer_time.dart';
+import 'services/prayer_service.dart';
+import 'screens/prayer_screen.dart';
 void main() {
   runApp(const HushApp());
 }

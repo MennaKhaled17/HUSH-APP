@@ -1,12 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-class PrayerTime {
-  final String name;
-  final String time;
-
-  PrayerTime({required this.name, required this.time});
-}
+import '../models/prayer_time.dart';
 
 class PrayerService {
   static Future<List<PrayerTime>> getPrayerTimes() async {
@@ -16,11 +10,9 @@ class PrayerService {
           'https://api.aladhan.com/v1/timingsByCity?city=Cairo&country=Egypt&method=5',
         ),
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final timings = data['data']['timings'];
-
         return [
           PrayerTime(name: 'Fajr', time: _formatTime(timings['Fajr'])),
           PrayerTime(name: 'Dhuhr', time: _formatTime(timings['Dhuhr'])),
