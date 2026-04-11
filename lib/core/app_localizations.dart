@@ -11,12 +11,21 @@ class AppLocalizations {
 
   // ── General ───────────────────────────────────────────────────
   String get appName => isArabic ? 'هاش' : 'HUSH';
-  String get cancel => isArabic ? 'إلغاء' : 'Cancel';
-  String get save => isArabic ? 'حفظ' : 'Save';
-  String get reset => isArabic ? 'إعادة ضبط' : 'Reset';
-  String get retry => isArabic ? 'إعادة المحاولة' : 'Retry';
-  String get edit => isArabic ? 'تعديل' : 'Edit';
-  String get add => isArabic ? 'إضافة' : 'Add';
+  String get cancel  => isArabic ? 'إلغاء' : 'Cancel';
+  String get save    => isArabic ? 'حفظ' : 'Save';
+  String get reset   => isArabic ? 'إعادة ضبط' : 'Reset';
+  String get retry   => isArabic ? 'إعادة المحاولة' : 'Retry';
+  String get edit    => isArabic ? 'تعديل' : 'Edit';
+  String get add     => isArabic ? 'إضافة' : 'Add';
+  String get done    => isArabic ? 'تم' : 'Done';
+  String get delete  => isArabic ? 'حذف' : 'Delete';
+
+  // ── Focus Mode Deletion ───────────────────────────────────────
+  String get deleteModeTitle     => isArabic ? 'حذف الوضع؟' : 'Delete mode?';
+  String get cantDeleteLastMode  => isArabic ? 'يجب أن يكون لديك وضع تركيز واحد على الأقل.' : 'You need at least one focus mode.';
+  String deleteModeMsg(String name) => isArabic
+      ? 'سيتم حذف "$name" نهائياً.'
+      : '"$name" will be permanently removed.';
 
   // ── Home ──────────────────────────────────────────────────────
   String get goodMorning   => isArabic ? 'صباح الخير' : 'Good morning';
@@ -56,19 +65,19 @@ class AppLocalizations {
   String modeSession(String name) =>
       isArabic ? 'جلسة $name' : '$name SESSION';
 
-  String minutesSuffix(int m) => isArabic ? '${m}د' : '${m}m';
+  String minutesSuffix(int m) => isArabic ? '${m}د' : '${m}m'; // ignore: unnecessary_brace_in_string_interps
 
   // ── Prayer ────────────────────────────────────────────────────
-  String get prayerTracker   => isArabic ? 'متتبع الصلاة' : 'PRAYER TRACKER';
-  String get todaysPrayers   => isArabic ? 'صلوات اليوم.' : "Today's prayers.";
-  String get todayLabel      => isArabic ? 'اليوم' : 'TODAY';
-  String get streakLabel     => isArabic ? 'سلسلة الأيام' : 'DAY STREAK';
-  String get todaysProgress  => isArabic ? 'تقدم اليوم' : "TODAY'S PROGRESS";
-  String get refreshTimes    => isArabic ? 'تحديث أوقات الصلاة' : 'Refresh prayer times';
-  String get nextLabel       => isArabic ? 'التالية' : 'NEXT';
-  String get couldNotLoad    => isArabic ? 'تعذّر تحميل أوقات الصلاة' : 'Could not load prayer times';
-  String prayersKept(int k)  => isArabic ? '$k من 5 صلوات' : '$k of 5 prayers';
-  String todayCount(int k)   => isArabic ? '$k / 5' : '$k / 5';
+  String get prayerTracker  => isArabic ? 'متتبع الصلاة' : 'PRAYER TRACKER';
+  String get todaysPrayers  => isArabic ? 'صلوات اليوم.' : "Today's prayers.";
+  String get todayLabel     => isArabic ? 'اليوم' : 'TODAY';
+  String get streakLabel    => isArabic ? 'سلسلة الأيام' : 'DAY STREAK';
+  String get todaysProgress => isArabic ? 'تقدم اليوم' : "TODAY'S PROGRESS";
+  String get refreshTimes   => isArabic ? 'تحديث أوقات الصلاة' : 'Refresh prayer times';
+  String get nextLabel      => isArabic ? 'التالية' : 'NEXT';
+  String get couldNotLoad   => isArabic ? 'تعذّر تحميل أوقات الصلاة' : 'Could not load prayer times';
+  String prayersKept(int k) => isArabic ? '$k من 5 صلوات' : '$k of 5 prayers';
+  String todayCount(int k)  => isArabic ? '$k / 5' : '$k / 5';
 
   // ── Settings ──────────────────────────────────────────────────
   String get preferences        => isArabic ? 'التفضيلات' : 'PREFERENCES';
@@ -101,10 +110,10 @@ class AppLocalizations {
   String get resetConfirmBody   => isArabic
       ? 'سيؤدي هذا إلى مسح جميع الإحصائيات والسلاسل وسجل الصلاة. لا يمكن التراجع عن هذا.'
       : 'This will clear all stats, streaks, and prayer history. This cannot be undone.';
-  String get languageLabel      => isArabic ? 'اللغة' : 'Language';
-  String get languageSub        => isArabic ? 'عربي / English' : 'English / عربي';
-  String get versionLine        => isArabic ? 'الإصدار 0.1.0 · القاهرة، مصر' : 'v0.1.0 · Cairo, Egypt';
-  String get tagline            => isArabic ? 'أسكت الضجيج. أجب النداء.' : 'Block the noise. Answer the call.';
+  String get languageLabel => isArabic ? 'اللغة' : 'Language';
+  String get languageSub   => isArabic ? 'عربي / English' : 'English / عربي';
+  String get versionLine   => isArabic ? 'الإصدار 0.1.0 · القاهرة، مصر' : 'v0.1.0 · Cairo, Egypt';
+  String get tagline       => isArabic ? 'أسكت الضجيج. أجب النداء.' : 'Block the noise. Answer the call.';
 
   // ── Nav ───────────────────────────────────────────────────────
   String get navHome     => isArabic ? 'الرئيسية' : 'HOME';

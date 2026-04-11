@@ -83,7 +83,7 @@ class FocusSession {
   final DateTime startTime;
   DateTime? endTime;
   bool completed;
-  bool interrupted;
+  bool interrupted; // interrupted by prayer
 
   FocusSession({
     required this.mode,

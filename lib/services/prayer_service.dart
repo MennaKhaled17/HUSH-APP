@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import '../models/prayer_time.dart';
 
 class PrayerService {
-  static const String _baseUrl = 'https://api.aladhan.com/v1/timings';
+  // Read base URL from .env — falls back to the production URL if missing
+  static String get _baseUrl =>
+      dotenv.env['ALADHAN_BASE_URL'] ?? 'https://api.aladhan.com/v1/timings';
 
   static const Map<String, int> methods = {
     'Egyptian': 5,
@@ -30,10 +33,17 @@ class PrayerService {
     final dateStr = '${d.day.toString().padLeft(2, '0')}-'
         '${d.month.toString().padLeft(2, '0')}-${d.year}';
 
-    final uri = Uri.parse(
-      '$_baseUrl/$dateStr?latitude=$latitude&longitude=$longitude&method=$method',
+    // Enforce https — rejects any .env value that accidentally uses http://
+    final rawBase = _baseUrl;
+    assert(
+      rawBase.startsWith('https://'),
+      'ALADHAN_BASE_URL must use https://, got: $rawBase',
     );
 
+    final uri = Uri.parse(
+      '$rawBase/$dateStr?latitude=$latitude&longitude=$longitude&method=$method',
+    );
+    print('🌐 Calling URL: $uri'); // ADD THIS LINE
     try {
       final response = await http.get(uri).timeout(const Duration(seconds: 10));
 
@@ -45,6 +55,8 @@ class PrayerService {
         throw Exception('Failed to fetch prayer times: ${response.statusCode}');
       }
     } catch (e) {
+        
+
       return _fallbackTimes(d);
     }
   }

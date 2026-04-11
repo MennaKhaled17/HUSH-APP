@@ -4,200 +4,50 @@ import '../services/app_state.dart';
 import '../core/app_colors.dart';
 import '../core/app_localizations.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, state, _) {
-        final loc = state.loc;
-        return SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 48),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Text(
-                  loc.preferences,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 3,
-                    color: AppColors.textMuted,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  loc.settingsTitle,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w300,
-                    color: AppColors.textPrimary,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 32),
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
 
-                // ── Language ────────────────────────────────────────────────
-               _SectionTitle(title: loc.languageLabel.toUpperCase()),
-                _SettingsCard(
-                  children: [
-                    _LanguageRow(
-                      label: loc.languageLabel,
-                      subtitle: loc.languageSub,
-                      currentLang: state.language,
-                      onChanged: (lang) => state.setLanguage(lang),
-                    ),
-                  ],
-                ),
+class _SettingsScreenState extends State<SettingsScreen>
+    with TickerProviderStateMixin {
+  late final AnimationController _heroCtrl;
+  late final AnimationController _sheetCtrl;
 
-                const SizedBox(height: 24),
+  late final Animation<double> _heroFade;
+  late final Animation<Offset> _heroSlide;
+  late final Animation<double> _sheetFade;
+  late final Animation<Offset> _sheetSlide;
 
-                // ── Prayer ──────────────────────────────────────────────────
-                _SectionTitle(title: loc.prayerSection),
-                _SettingsCard(
-                  children: [
-                    _SelectRow(
-                      label: loc.calcMethod,
-                      subtitle: loc.calcMethodSub,
-                      value: state.calculationMethod,
-                      options: const ['Egyptian', 'MWL', 'ISNA', 'Umm al-Qura'],
-                      onChanged: (v) => state.updateSetting('calculationMethod', v),
-                    ),
-                    _Divider(),
-                    _ToggleRow(
-                      label: loc.playAzan,
-                      subtitle: loc.playAzanSub,
-                      value: state.playAzan,
-                      onChanged: (v) => state.updateSetting('playAzan', v),
-                    ),
-                    _Divider(),
-                    _StepperRow(
-                      label: loc.gracePeriod,
-                      subtitle: loc.gracePeriodSub,
-                      value: state.gracePeriodMinutes,
-                      min: 0,
-                      max: 30,
-                      onChanged: (v) => state.updateSetting('gracePeriod', v),
-                    ),
-                    _Divider(),
-                    _ToggleRow(
-                      label: loc.emergencyBypass,
-                      subtitle: loc.emergencyBypassSub,
-                      value: state.emergencyBypass,
-                      onChanged: (v) => state.updateSetting('emergencyBypass', v),
-                    ),
-                  ],
-                ),
+  @override
+  void initState() {
+    super.initState();
 
-                const SizedBox(height: 24),
+    _heroCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    _heroFade = CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOut);
+    _heroSlide = Tween(begin: const Offset(0, -0.08), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _heroCtrl, curve: Curves.easeOutCubic));
 
-                // ── Focus ───────────────────────────────────────────────────
-                _SectionTitle(title: loc.focusSection),
-                _SettingsCard(
-                  children: [
-                    _ToggleRow(
-                      label: loc.pomodoroMode,
-                      subtitle: loc.pomodoroModeSub,
-                      value: state.pomodoroMode,
-                      onChanged: (v) => state.updateSetting('pomodoroMode', v),
-                    ),
-                    _Divider(),
-                    _StepperRow(
-                      label: loc.breakDuration,
-                      subtitle: loc.breakDurationSub,
-                      value: state.breakDurationMinutes,
-                      min: 1,
-                      max: 30,
-                      onChanged: (v) => state.updateSetting('breakDuration', v),
-                    ),
-                    _Divider(),
-                    _ToggleRow(
-                      label: loc.blockNotifications,
-                      subtitle: loc.blockNotifSub,
-                      value: state.blockNotifications,
-                      onChanged: (v) => state.updateSetting('blockNotifications', v),
-                    ),
-                    _Divider(),
-                    _ToggleRow(
-                      label: loc.allowCalls,
-                      subtitle: loc.allowCallsSub,
-                      value: state.allowCalls,
-                      onChanged: (v) => state.updateSetting('allowCalls', v),
-                    ),
-                  ],
-                ),
+    _sheetCtrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 600));
+    _sheetFade = CurvedAnimation(parent: _sheetCtrl, curve: Curves.easeOut);
+    _sheetSlide = Tween(begin: const Offset(0, 0.1), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _sheetCtrl, curve: Curves.easeOutCubic));
 
-                const SizedBox(height: 24),
+    _heroCtrl.forward();
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) _sheetCtrl.forward();
+    });
+  }
 
-                // ── Stats ───────────────────────────────────────────────────
-                _SectionTitle(title: loc.statsSection),
-                _SettingsCard(
-                  children: [
-                    _ToggleRow(
-                      label: loc.weeklyReport,
-                      subtitle: loc.weeklyReportSub,
-                      value: state.weeklyReport,
-                      onChanged: (v) => state.updateSetting('weeklyReport', v),
-                    ),
-                    _Divider(),
-                    _InfoRow(
-                      label: loc.totalFocusTime,
-                      value: _formatMinutes(state.totalFocusMinutes),
-                    ),
-                    _Divider(),
-                    _DangerRow(
-                      label: loc.resetAllData,
-                      subtitle: loc.resetAllDataSub,
-                      resetLabel: loc.reset,
-                      onTap: () => _confirmReset(context, state, loc),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 40),
-
-                // Footer
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        'HUSH',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          letterSpacing: 6,
-                          color: AppColors.border2,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        loc.versionLine,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        loc.tagline,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: AppColors.textMuted,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+  @override
+  void dispose() {
+    _heroCtrl.dispose();
+    _sheetCtrl.dispose();
+    super.dispose();
   }
 
   String _formatMinutes(int min) {
@@ -211,37 +61,283 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.tileBg,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: const BorderSide(color: AppColors.border, width: 0.5),
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.tileBorder, width: 1),
         ),
         title: Text(
           loc.resetConfirmTitle,
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          style: TextStyle(
+              color: AppColors.sheetText,
+              fontSize: 16,
+              fontWeight: FontWeight.w700),
         ),
         content: Text(
           loc.resetConfirmBody,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+          style: TextStyle(
+              color: AppColors.sheetText.withValues(alpha: 0.55), fontSize: 13),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text(loc.cancel, style: const TextStyle(color: AppColors.textSecondary)),
+            child: Text(loc.cancel,
+                style:
+                    TextStyle(color: AppColors.sheetText.withValues(alpha: 0.5))),
           ),
           TextButton(
             onPressed: () {
               state.resetAllData();
               Navigator.pop(ctx);
             },
-            child: Text(loc.reset, style: const TextStyle(color: AppColors.red)),
+            child: const Text('Reset', style: TextStyle(color: AppColors.red)),
           ),
         ],
       ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppState>(
+      builder: (context, state, _) {
+        final loc = state.loc;
+        return Scaffold(
+          backgroundColor: AppColors.base,
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Animated hero header ──────────────────────────
+              FadeTransition(
+                opacity: _heroFade,
+                child: SlideTransition(
+                  position: _heroSlide,
+                  child: Container(
+                    color: AppColors.base,
+                    padding: EdgeInsets.fromLTRB(
+                        22, MediaQuery.of(context).padding.top + 20, 22, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          loc.preferences,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            letterSpacing: 3,
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        RichText(
+                          text: TextSpan(
+                            style: const TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.textPrimary,
+                              letterSpacing: -0.5,
+                            ),
+                            children: [
+                              TextSpan(
+                                  text: loc.settingsTitle.replaceAll('.', '')),
+                              const TextSpan(
+                                text: '.',
+                                style: TextStyle(color: AppColors.lime),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── Animated light sheet ──────────────────────────
+              Expanded(
+                child: FadeTransition(
+                  opacity: _sheetFade,
+                  child: SlideTransition(
+                    position: _sheetSlide,
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: AppColors.sheet,
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(28)),
+                      ),
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.fromLTRB(16, 24, 16, 48),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _SectionTitle(title: loc.languageLabel.toUpperCase()),
+                            _SettingsCard(
+                              children: [
+                                _LanguageRow(
+                                  label: loc.languageLabel,
+                                  subtitle: loc.languageSub,
+                                  currentLang: state.language,
+                                  onChanged: (lang) => state.setLanguage(lang),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 20),
+                            _SectionTitle(title: loc.prayerSection),
+                            _SettingsCard(
+                              children: [
+                                _SelectRow(
+                                  label: loc.calcMethod,
+                                  subtitle: loc.calcMethodSub,
+                                  value: state.calculationMethod,
+                                  options: const [
+                                    'Egyptian', 'MWL', 'ISNA', 'Umm al-Qura'
+                                  ],
+                                  onChanged: (v) =>
+                                      state.updateSetting('calculationMethod', v),
+                                ),
+                                _SheetDivider(),
+                                _ToggleRow(
+                                  label: loc.playAzan,
+                                  subtitle: loc.playAzanSub,
+                                  value: state.playAzan,
+                                  onChanged: (v) =>
+                                      state.updateSetting('playAzan', v),
+                                ),
+                                _SheetDivider(),
+                                _StepperRow(
+                                  label: loc.gracePeriod,
+                                  subtitle: loc.gracePeriodSub,
+                                  value: state.gracePeriodMinutes,
+                                  min: 0,
+                                  max: 30,
+                                  onChanged: (v) =>
+                                      state.updateSetting('gracePeriod', v),
+                                ),
+                                _SheetDivider(),
+                                _ToggleRow(
+                                  label: loc.emergencyBypass,
+                                  subtitle: loc.emergencyBypassSub,
+                                  value: state.emergencyBypass,
+                                  onChanged: (v) =>
+                                      state.updateSetting('emergencyBypass', v),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 20),
+                            _SectionTitle(title: loc.focusSection),
+                            _SettingsCard(
+                              children: [
+                                _ToggleRow(
+                                  label: loc.pomodoroMode,
+                                  subtitle: loc.pomodoroModeSub,
+                                  value: state.pomodoroMode,
+                                  onChanged: (v) =>
+                                      state.updateSetting('pomodoroMode', v),
+                                ),
+                                _SheetDivider(),
+                                _StepperRow(
+                                  label: loc.breakDuration,
+                                  subtitle: loc.breakDurationSub,
+                                  value: state.breakDurationMinutes,
+                                  min: 1,
+                                  max: 30,
+                                  onChanged: (v) =>
+                                      state.updateSetting('breakDuration', v),
+                                ),
+                                _SheetDivider(),
+                                _ToggleRow(
+                                  label: loc.blockNotifications,
+                                  subtitle: loc.blockNotifSub,
+                                  value: state.blockNotifications,
+                                  onChanged: (v) => state.updateSetting(
+                                      'blockNotifications', v),
+                                ),
+                                _SheetDivider(),
+                                _ToggleRow(
+                                  label: loc.allowCalls,
+                                  subtitle: loc.allowCallsSub,
+                                  value: state.allowCalls,
+                                  onChanged: (v) =>
+                                      state.updateSetting('allowCalls', v),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 20),
+                            _SectionTitle(title: loc.statsSection),
+                            _SettingsCard(
+                              children: [
+                                _ToggleRow(
+                                  label: loc.weeklyReport,
+                                  subtitle: loc.weeklyReportSub,
+                                  value: state.weeklyReport,
+                                  onChanged: (v) =>
+                                      state.updateSetting('weeklyReport', v),
+                                ),
+                                _SheetDivider(),
+                                _InfoRow(
+                                  label: loc.totalFocusTime,
+                                  value: _formatMinutes(state.totalFocusMinutes),
+                                ),
+                                _SheetDivider(),
+                                _DangerRow(
+                                  label: loc.resetAllData,
+                                  subtitle: loc.resetAllDataSub,
+                                  resetLabel: loc.reset,
+                                  onTap: () => _confirmReset(context, state, loc),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 40),
+                            Center(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'HUSH',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      letterSpacing: 6,
+                                      color: AppColors.sheetText
+                                          .withValues(alpha: 0.15),
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    loc.versionLine,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.sheetText
+                                          .withValues(alpha: 0.35),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    loc.tagline,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.sheetText
+                                          .withValues(alpha: 0.35),
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -255,14 +351,14 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 9,
           letterSpacing: 2.5,
-          color: AppColors.textMuted,
-          fontWeight: FontWeight.w500,
+          color: AppColors.sheetText.withValues(alpha: 0.4),
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -277,9 +373,9 @@ class _SettingsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border, width: 0.5),
+        color: AppColors.tileBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.tileBorder, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -289,10 +385,10 @@ class _SettingsCard extends StatelessWidget {
   }
 }
 
-class _Divider extends StatelessWidget {
+class _SheetDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Divider(color: AppColors.border, height: 1);
+    return Divider(color: AppColors.tileBorder, height: 1);
   }
 }
 
@@ -319,18 +415,25 @@ class _LanguageRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.sheetText)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.sheetText.withValues(alpha: 0.4))),
               ],
             ),
           ),
           const SizedBox(width: 12),
           Container(
             decoration: BoxDecoration(
-              color: AppColors.surface2,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.border2, width: 0.5),
+              color: AppColors.iconBgGray,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.tileBorder),
             ),
             child: Row(
               children: [
@@ -358,7 +461,8 @@ class _LangChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _LangChip({required this.label, required this.selected, required this.onTap});
+  const _LangChip(
+      {required this.label, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -368,15 +472,17 @@ class _LangChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: selected ? AppColors.gold : Colors.transparent,
-          borderRadius: BorderRadius.circular(7),
+          color: selected ? AppColors.lime : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
         ),
         child: Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: selected ? AppColors.base : AppColors.textSecondary,
+            fontWeight: FontWeight.w600,
+            color: selected
+                ? AppColors.sheetText
+                : AppColors.sheetText.withValues(alpha: 0.45),
           ),
         ),
       ),
@@ -407,9 +513,16 @@ class _ToggleRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.sheetText)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.sheetText.withValues(alpha: 0.4))),
               ],
             ),
           ),
@@ -418,21 +531,24 @@ class _ToggleRow extends StatelessWidget {
             onTap: () => onChanged(!value),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 46,
-              height: 27,
+              width: 48,
+              height: 28,
               decoration: BoxDecoration(
-                color: value ? AppColors.gold : AppColors.border2,
+                color: value ? AppColors.lime : AppColors.tileBorder,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 200),
-                alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+                alignment:
+                    value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
-                  width: 21,
-                  height: 21,
+                  width: 22,
+                  height: 22,
                   margin: const EdgeInsets.symmetric(horizontal: 3),
                   decoration: BoxDecoration(
-                    color: value ? AppColors.base : AppColors.textMuted,
+                    color: value
+                        ? AppColors.sheetText
+                        : AppColors.sheetText.withValues(alpha: 0.4),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -472,30 +588,41 @@ class _StepperRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.sheetText)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.sheetText.withValues(alpha: 0.4))),
               ],
             ),
           ),
           const SizedBox(width: 16),
           Row(
             children: [
-              _StepBtn(icon: Icons.remove, onTap: value > min ? () => onChanged(value - 1) : null),
+              _StepBtn(
+                  icon: Icons.remove,
+                  onTap: value > min ? () => onChanged(value - 1) : null),
               SizedBox(
                 width: 36,
                 child: Text(
                   '$value',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.textPrimary,
-                    fontFeatures: [FontFeature.tabularFigures()],
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.sheetText,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
-              _StepBtn(icon: Icons.add, onTap: value < max ? () => onChanged(value + 1) : null),
+              _StepBtn(
+                  icon: Icons.add,
+                  onTap: value < max ? () => onChanged(value + 1) : null),
             ],
           ),
         ],
@@ -515,17 +642,19 @@ class _StepBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 30,
-        height: 30,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: AppColors.surface2,
-          borderRadius: BorderRadius.circular(7),
-          border: Border.all(color: AppColors.border2, width: 0.5),
+          color: AppColors.iconBgGray,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.tileBorder, width: 1),
         ),
         child: Icon(
           icon,
           size: 14,
-          color: onTap != null ? AppColors.textSecondary : AppColors.textMuted,
+          color: onTap != null
+              ? AppColors.sheetText.withValues(alpha: 0.6)
+              : AppColors.sheetText.withValues(alpha: 0.2),
         ),
       ),
     );
@@ -557,25 +686,41 @@ class _SelectRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.sheetText)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
+                Text(subtitle,
+                    style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.sheetText.withValues(alpha: 0.4))),
               ],
             ),
           ),
           const SizedBox(width: 12),
           Material(
-  color: Colors.transparent,
-  child: DropdownButton<String>(
-    value: value,
-    onChanged: (v) { if (v != null) onChanged(v); },
-    dropdownColor: AppColors.surface2,
-    underline: const SizedBox.shrink(),
-    icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.textMuted),
-    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontFamily: 'DMSans'),
-    items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
-  ),
-),
+            color: Colors.transparent,
+            child: DropdownButton<String>(
+              value: value,
+              onChanged: (v) {
+                if (v != null) onChanged(v);
+              },
+              dropdownColor: AppColors.tileBg,
+              underline: const SizedBox.shrink(),
+              icon: Icon(Icons.keyboard_arrow_down_rounded,
+                  size: 16,
+                  color: AppColors.sheetText.withValues(alpha: 0.4)),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.sheetText.withValues(alpha: 0.6),
+                  fontFamily: 'DMSans'),
+              items: options
+                  .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+                  .toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -595,9 +740,17 @@ class _InfoRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+            child: Text(label,
+                style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.sheetText)),
           ),
-          Text(value, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary, fontFeatures: [FontFeature.tabularFigures()])),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.sheetText.withValues(alpha: 0.5),
+                  fontFeatures: const [FontFeature.tabularFigures()])),
         ],
       ),
     );
@@ -627,17 +780,25 @@ class _DangerRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
+                Text(label,
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.sheetText)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.red)),
+                Text(subtitle,
+                    style: const TextStyle(fontSize: 12, color: AppColors.red)),
               ],
             ),
           ),
           GestureDetector(
             onTap: onTap,
-            child: Text(
-              resetLabel,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.red),
+            child: const Text(
+              'Reset',
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.red),
             ),
           ),
         ],
